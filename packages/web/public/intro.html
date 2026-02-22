@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PeakForge — Spectroscopy Peak Fitting Guide</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1a2e; --muted: #555; --accent: #457b9d;
+    --card-bg: #f4f4f8; --border: #ddd; --code-bg: #eef1f5;
+    --eq-bg: #f8f8fc; --heading: #264653;
+  }
+  [data-theme="dark"] {
+    --bg: #1a1a2e; --fg: #e0e0e8; --muted: #aaa; --accent: #6ec6ff;
+    --card-bg: #22223a; --border: #3a3a5c; --code-bg: #2a2a44;
+    --eq-bg: #24243c; --heading: #6ec6ff;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--fg);
+    line-height: 1.7; transition: background 0.3s, color 0.3s;
+  }
+  .container { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .top-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.5rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .top-bar a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  .top-bar a:hover { text-decoration: underline; }
+  .theme-btn {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    padding: 0.3rem 0.7rem; cursor: pointer; font-size: 1.1rem; color: var(--fg);
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center; padding: 3rem 0 2rem;
+    border-bottom: 2px solid var(--border); margin-bottom: 2.5rem;
+  }
+  .hero h1 { font-size: 2.4rem; color: var(--heading); margin-bottom: 0.3rem; }
+  .hero .tagline { font-size: 1.15rem; color: var(--muted); }
+
+  h2 {
+    font-size: 1.5rem; color: var(--heading); margin: 2.5rem 0 0.8rem;
+    padding-bottom: 0.3rem; border-bottom: 2px solid var(--accent);
+  }
+  h3 { font-size: 1.15rem; color: var(--heading); margin: 1.4rem 0 0.5rem; }
+  p { margin-bottom: 1rem; }
+  ul, ol { margin: 0 0 1rem 1.5rem; }
+  li { margin-bottom: 0.3rem; }
+  strong { color: var(--heading); }
+
+  .eq {
+    background: var(--eq-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.8rem 1.2rem; margin: 0.8rem 0 1.2rem;
+    font-family: 'Cambria Math', 'Latin Modern Math', Georgia, serif;
+    font-size: 1.05rem; overflow-x: auto;
+  }
+  .eq .label { font-weight: 600; color: var(--accent); margin-right: 0.5rem; }
+
+  .card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.2rem 1.4rem; margin: 1rem 0;
+  }
+  .card h3 { margin-top: 0; }
+
+  code {
+    background: var(--code-bg); padding: 0.15rem 0.4rem;
+    border-radius: 4px; font-size: 0.9em;
+  }
+
+  table {
+    width: 100%; border-collapse: collapse; margin: 1rem 0;
+    font-size: 0.95rem;
+  }
+  th, td {
+    text-align: left; padding: 0.5rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+  }
+  th { color: var(--heading); font-weight: 600; }
+
+  .steps { counter-reset: step; list-style: none; margin-left: 0; }
+  .steps li {
+    counter-increment: step; position: relative;
+    padding-left: 2.5rem; margin-bottom: 1rem;
+  }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 0;
+    width: 1.8rem; height: 1.8rem; border-radius: 50%;
+    background: var(--accent); color: #fff; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+  }
+
+  .glossary dt { font-weight: 600; color: var(--heading); margin-top: 0.6rem; }
+  .glossary dd { margin-left: 1rem; margin-bottom: 0.4rem; color: var(--muted); }
+
+  .refs { font-size: 0.9rem; color: var(--muted); }
+  .refs li { margin-bottom: 0.2rem; }
+
+  footer {
+    margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border);
+    text-align: center; color: var(--muted); font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="top-bar">
+  <a href="/">← Back to PeakForge</a>
+  <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>⚗️ PeakForge</h1>
+  <p class="tagline">Free, browser-based spectroscopy peak fitting — no installs, no subscriptions</p>
+</div>
+
+<!-- 1. What is Spectroscopy? -->
+<h2>1. What is Spectroscopy?</h2>
+<p>
+  Spectroscopy studies how electromagnetic radiation interacts with matter.
+  When photons strike a sample, they may be absorbed, emitted, or scattered,
+  producing a <strong>spectrum</strong> — a plot of intensity versus wavelength,
+  wavenumber, or energy. Different techniques probe different phenomena:
+</p>
+<ul>
+  <li><strong>Raman Spectroscopy</strong> — inelastic scattering reveals vibrational modes; plots wavenumber shift (cm⁻¹) vs. intensity.</li>
+  <li><strong>FTIR (Fourier-Transform Infrared)</strong> — absorption of infrared light by molecular bonds; plots wavenumber vs. transmittance or absorbance.</li>
+  <li><strong>XPS (X-ray Photoelectron Spectroscopy)</strong> — core-level electron binding energies identify elemental composition; plots binding energy (eV) vs. counts.</li>
+  <li><strong>UV-Vis</strong> — electronic transitions in the ultraviolet–visible range; plots wavelength (nm) vs. absorbance.</li>
+</ul>
+<p>
+  In every case the raw spectrum contains <strong>peaks</strong> whose positions,
+  widths, and intensities encode chemical and physical information about the sample.
+</p>
+
+<!-- 2. Why Peak Fitting? -->
+<h2>2. Why Peak Fitting?</h2>
+<p>
+  Real spectra rarely consist of a single, isolated peak. Overlapping peaks are
+  the norm — neighboring vibrational modes, mixed oxidation states, or unresolved
+  multiplets blend together. <strong>Peak fitting</strong> (also called
+  <em>deconvolution</em>) separates a complex spectral envelope into its
+  constituent components so you can:
+</p>
+<ul>
+  <li>Determine the <strong>exact position</strong> of each underlying peak</li>
+  <li>Measure <strong>individual areas</strong> for quantitative analysis</li>
+  <li>Characterize <strong>peak widths</strong> (related to physical broadening mechanisms)</li>
+  <li>Compare <strong>relative abundances</strong> of chemical species</li>
+  <li>Track changes across samples, temperatures, or time points</li>
+</ul>
+
+<!-- 3. Peak Profiles -->
+<h2>3. Peak Profiles</h2>
+<p>
+  The shape of a spectral peak depends on the broadening mechanism. PeakForge
+  supports three standard profile functions:
+</p>
+
+<div class="card">
+  <h3>Gaussian — Thermal / Inhomogeneous Broadening</h3>
+  <p>
+    Gaussian peaks arise from statistical distributions of environments
+    (thermal motion, crystal field inhomogeneity). They dominate in XPS and
+    many solid-state spectra.
+  </p>
+  <div class="eq">
+    <span class="label">G(x)</span> = H · exp( −4 ln 2 · ((x − x₀) / w)² )
+  </div>
+  <div class="eq">
+    <span class="label">Area</span> = H · w · √(π / (4 ln 2))  ≈  H · w · 1.0645
+  </div>
+</div>
+
+<div class="card">
+  <h3>Lorentzian — Natural / Pressure Broadening</h3>
+  <p>
+    Lorentzian peaks come from lifetime broadening (Heisenberg uncertainty) and
+    pressure/collisional broadening. They have broader tails than Gaussians and
+    are common in Raman and fluorescence spectroscopy.
+  </p>
+  <div class="eq">
+    <span class="label">L(x)</span> = H · w² / ( 4(x − x₀)² + w² )
+  </div>
+  <div class="eq">
+    <span class="label">Area</span> = H · w · π / 2  ≈  H · w · 1.5708
+  </div>
+</div>
+
+<div class="card">
+  <h3>Pseudo-Voigt — Mixed Broadening</h3>
+  <p>
+    When both Gaussian and Lorentzian broadening contribute, the true line shape
+    is a Voigt profile (a convolution of the two). The <strong>pseudo-Voigt</strong>
+    approximation uses a linear combination controlled by the mixing parameter η:
+  </p>
+  <div class="eq">
+    <span class="label">V(x)</span> = η · L(x) + (1 − η) · G(x), &nbsp; where η ∈ [0, 1]
+  </div>
+  <p>
+    When η = 0 the profile is pure Gaussian; when η = 1 it is pure Lorentzian.
+    Intermediate values capture the physical reality of mixed broadening mechanisms.
+  </p>
+</div>
+
+<!-- 4. Peak Parameters -->
+<h2>4. Peak Parameters</h2>
+<table>
+  <thead>
+    <tr><th>Parameter</th><th>Symbol</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Position</td><td>x₀</td><td>Center of the peak on the x-axis (wavenumber, eV, nm, etc.)</td></tr>
+    <tr><td>Height</td><td>H</td><td>Maximum intensity of the peak above the baseline</td></tr>
+    <tr><td>FWHM</td><td>w</td><td>Full Width at Half Maximum — the width at 50% of H</td></tr>
+    <tr><td>Area</td><td>—</td><td>Integrated area under the peak (proportional to quantity)</td></tr>
+    <tr><td>Mixing ratio</td><td>η</td><td>Pseudo-Voigt parameter: fraction of Lorentzian character (0–1)</td></tr>
+  </tbody>
+</table>
+
+<!-- 5. Baseline Correction -->
+<h2>5. Baseline Correction</h2>
+<p>
+  Raw spectra often sit on a <strong>baseline</strong> — a slowly varying
+  background caused by fluorescence, scattering, detector drift, or sample
+  substrate contributions. If left uncorrected, the baseline distorts peak
+  areas and positions.
+</p>
+<h3>Linear Baseline</h3>
+<p>
+  Fits a straight line through the endpoints (or user-selected anchor points)
+  of the spectrum, then subtracts it. Best for spectra with mild, monotonic
+  backgrounds.
+</p>
+<h3>Polynomial Baseline</h3>
+<p>
+  Fits a polynomial (degree 2–5) through baseline regions free of peaks.
+  Handles curved backgrounds from fluorescence or broad scattering. Higher
+  degrees give more flexibility but risk overfitting.
+</p>
+
+<!-- 6. Peak Detection -->
+<h2>6. Peak Detection</h2>
+<p>
+  Before fitting, PeakForge identifies candidate peaks automatically:
+</p>
+<ol>
+  <li><strong>Local maxima</strong> — find all points where the intensity is greater than both neighbors.</li>
+  <li><strong>Noise estimation</strong> — compute the Median Absolute Deviation (MAD) of residuals to set a threshold.</li>
+  <li><strong>Prominence filtering</strong> — reject maxima that don't rise significantly above their surroundings, eliminating noise spikes.</li>
+  <li><strong>Initial estimates</strong> — for each surviving peak, estimate x₀, H, and FWHM from the local shape.</li>
+</ol>
+<p>
+  You can also click directly on the spectrum to add peaks manually.
+</p>
+
+<!-- 7. Curve Fitting -->
+<h2>7. Curve Fitting — Levenberg-Marquardt Optimization</h2>
+<p>
+  PeakForge simultaneously fits all detected peaks to the spectrum using the
+  <strong>Levenberg-Marquardt (L-M)</strong> algorithm, a standard nonlinear
+  least-squares optimizer that interpolates between gradient descent and
+  Gauss-Newton methods.
+</p>
+<div class="eq">
+  <span class="label">L-M update</span> Δp = (J<sup>T</sup>J + λI)<sup>−1</sup> J<sup>T</sup>r
+</div>
+<p>
+  where <strong>J</strong> is the Jacobian matrix of partial derivatives,
+  <strong>r</strong> is the residual vector (observed − model),
+  <strong>λ</strong> is a damping parameter, and <strong>I</strong> is the
+  identity matrix. The algorithm adjusts λ adaptively: large λ takes cautious
+  gradient-descent steps; small λ takes aggressive Gauss-Newton steps near the
+  minimum.
+</p>
+<h3>Fit Quality</h3>
+<ul>
+  <li><strong>Residuals</strong> — the difference between the measured spectrum and the fitted envelope. Ideally random noise with no systematic pattern.</li>
+  <li><strong>R² (coefficient of determination)</strong> — fraction of variance explained by the fit. Values &gt; 0.99 indicate excellent fits for clean spectral data.</li>
+</ul>
+
+<!-- 8. How to Use PeakForge -->
+<h2>8. How to Use PeakForge</h2>
+<ol class="steps">
+  <li>
+    <strong>Load a spectrum</strong> — click <em>📂 Upload CSV</em> or drag-and-drop
+    a CSV file. Format: column 1 = x (wavenumber, wavelength, or energy),
+    column 2 = intensity. Tab, comma, or semicolon delimiters are auto-detected.
+  </li>
+  <li>
+    <strong>Baseline correction</strong> — toggle <em>📐 Baseline</em> to subtract
+    the background. Choose Linear or Polynomial from the dropdown.
+  </li>
+  <li>
+    <strong>Detect peaks</strong> — click <em>🔍 Detect Peaks</em> for automatic
+    detection, or click directly on the spectrum to add peaks manually.
+  </li>
+  <li>
+    <strong>Choose a profile</strong> — select Gaussian, Lorentzian, or Pseudo-Voigt
+    from the dropdown to match your broadening mechanism.
+  </li>
+  <li>
+    <strong>Fit</strong> — click <em>📈 Fit</em>. PeakForge runs the L-M optimizer
+    and overlays the fitted envelope (black) and individual peaks (colored) on
+    the spectrum. A residual plot appears below.
+  </li>
+  <li>
+    <strong>Review results</strong> — the results panel shows each peak's position,
+    height, FWHM, and area, plus the overall R².
+  </li>
+  <li>
+    <strong>Export</strong> — download fitted parameters and curve data as CSV
+    (<em>💾 CSV</em>) or save the chart as a PNG image (<em>🖼️ PNG</em>).
+  </li>
+</ol>
+
+<!-- 9. Glossary -->
+<h2>9. Glossary</h2>
+<dl class="glossary">
+  <dt>FWHM (Full Width at Half Maximum)</dt>
+  <dd>The width of a peak measured at 50% of its maximum height. A direct measure of spectral resolution and broadening.</dd>
+
+  <dt>Gaussian</dt>
+  <dd>A bell-shaped curve (normal distribution) arising from statistical/thermal broadening mechanisms.</dd>
+
+  <dt>Lorentzian</dt>
+  <dd>A peak profile with broader tails than Gaussian, arising from natural lifetime or pressure broadening (also called a Cauchy distribution).</dd>
+
+  <dt>Voigt / Pseudo-Voigt</dt>
+  <dd>A profile combining Gaussian and Lorentzian character. The true Voigt is a convolution; the pseudo-Voigt is a linear combination controlled by η.</dd>
+
+  <dt>Baseline</dt>
+  <dd>The slowly varying background signal on which spectral peaks are superimposed. Must be removed before quantitative analysis.</dd>
+
+  <dt>Residual</dt>
+  <dd>The difference between the measured spectrum and the fitted model. Well-distributed residuals indicate a good fit.</dd>
+
+  <dt>Deconvolution</dt>
+  <dd>The process of decomposing an overlapping spectral envelope into its individual component peaks.</dd>
+
+  <dt>Levenberg-Marquardt</dt>
+  <dd>A nonlinear least-squares optimization algorithm that adaptively blends gradient descent and Gauss-Newton methods.</dd>
+
+  <dt>R² (Coefficient of Determination)</dt>
+  <dd>A statistical measure of how well the fitted model explains the variance in the data. R² = 1 is a perfect fit.</dd>
+</dl>
+
+<!-- 10. References -->
+<h2>10. References</h2>
+<ul class="refs">
+  <li>Skoog, Holler, Crouch — <em>Principles of Instrumental Analysis</em>, 7th ed. (comprehensive spectroscopy textbook)</li>
+  <li>Stuart — <em>Infrared Spectroscopy: Fundamentals and Applications</em> (FTIR-focused)</li>
+  <li>Briggs &amp; Seah — <em>Practical Surface Analysis by XPS</em> (peak fitting for XPS)</li>
+  <li>Levenberg (1944) &amp; Marquardt (1963) — original L-M algorithm papers</li>
+  <li>NIST Chemistry WebBook — reference Raman and IR spectra</li>
+  <li>OriginPro Peak Analyzer documentation — commercial peak fitting reference</li>
+  <li>Newville et al. — <em>lmfit</em> Python library documentation (L-M implementation reference)</li>
+</ul>
+
+<footer>
+  PeakForge is free and open-source. All calculations run in your browser — no data leaves your machine.
+</footer>
+
+</div>
+
+<script>
+function toggleTheme() {
+  const body = document.body;
+  const btn = document.getElementById('themeBtn');
+  if (body.getAttribute('data-theme') === 'dark') {
+    body.removeAttribute('data-theme');
+    btn.textContent = '🌙';
+  } else {
+    body.setAttribute('data-theme', 'dark');
+    btn.textContent = '☀️';
+  }
+}
+</script>
+</body>
+</html>

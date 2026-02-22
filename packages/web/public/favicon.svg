@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Peak 1: blue, left -->
+  <path d="M2,28 Q6,28 8,20 Q10,10 12,6 Q14,10 16,20 Q18,28 22,28" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+  <!-- Peak 2: red, center -->
+  <path d="M8,28 Q11,28 13,18 Q15,6 17,3 Q19,6 21,18 Q23,28 26,28" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+  <!-- Peak 3: green, right -->
+  <path d="M14,28 Q18,28 20,22 Q22,14 24,10 Q26,14 28,22 Q29,28 30,28" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+  <!-- Envelope: black -->
+  <path d="M2,28 Q6,28 8,20 Q10,12 12,6 Q13,4 14,3 Q15,2.5 16,3 Q17,3 17,3 Q19,6 21,14 Q22,14 24,10 Q26,14 28,22 Q29,28 30,28" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round"/>
+  <!-- Baseline -->
+  <line x1="1" y1="28" x2="31" y2="28" stroke="#9ca3af" stroke-width="1" stroke-linecap="round"/>
+</svg>
