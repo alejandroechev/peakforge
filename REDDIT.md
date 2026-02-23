@@ -8,7 +8,7 @@
 
 **Body:**
 
-If you do Raman, FTIR, or XPS and need to deconvolve overlapping peaks, I built PeakForge — a free web app for spectroscopy peak fitting. It does baseline correction, automatic peak detection, and simultaneous multi-peak fitting with Gaussian, Lorentzian, and pseudo-Voigt profiles.
+I built PeakForge — a free web app for spectroscopy peak fitting (Raman, FTIR, XPS). It includes baseline correction, automatic peak detection, and simultaneous multi-peak fitting with Gaussian, Lorentzian, and pseudo-Voigt profiles.
 
 Uses Levenberg-Marquardt optimization to fit all peaks simultaneously. Reports center, height, width, area, and R² for each peak.
 
