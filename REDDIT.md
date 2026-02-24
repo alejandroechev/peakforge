@@ -12,7 +12,7 @@ I built PeakForge — a free web app for spectroscopy peak fitting (Raman, FTIR,
 
 Uses Levenberg-Marquardt optimization to fit all peaks simultaneously. Reports center, height, width, area, and R² for each peak.
 
-No OriginPro license needed. No install, no login, runs entirely in your browser.
+Runs in your browser with no install required.
 
 🔗 **Live:** https://PeakForge.vercel.app
 📂 **Source:** https://github.com/alejandroechev/PeakForge
@@ -46,9 +46,10 @@ What would spectroscopists need? Batch processing? Custom line shapes? Let me kn
 
 I built a free browser-based peak fitting tool for spectroscopy data. Automatic peak detection, baseline correction, and simultaneous multi-peak fitting with Gaussian, Lorentzian, or pseudo-Voigt profiles.
 
-No OriginPro, no MATLAB, no install. Open source and runs client-side.
+Open source and runs client-side.
 
 🔗 https://PeakForge.vercel.app
 📂 https://github.com/alejandroechev/PeakForge
 
 Feedback welcome from anyone doing spectral analysis — what would make this worth using?
+
