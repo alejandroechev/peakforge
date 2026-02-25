@@ -28,7 +28,6 @@ interface ToolbarProps {
   onFit: () => void;
   onTheme: () => void;
   detectNotice?: string;
-  regionLabel?: string;
 }
 
 export function Toolbar(props: ToolbarProps) {
@@ -131,12 +130,6 @@ export function Toolbar(props: ToolbarProps) {
         )}
 
         <div className="separator" />
-
-        {props.regionLabel && (
-          <span className="region-badge" data-testid="region-badge">
-            ✂️ Region: {props.regionLabel}
-          </span>
-        )}
 
         <button disabled={!props.hasData} onClick={props.onDetect}>
           🔍 Detect Peaks

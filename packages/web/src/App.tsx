@@ -72,7 +72,6 @@ export default function App() {
     yLabel: savedState?.yLabel ?? 'y',
   }));
   const [detectNotice, setDetectNotice] = useState<string | undefined>(undefined);
-  const [brushRange, setBrushRange] = useState<{startIdx: number, endIdx: number} | null>(null);
 
   // Debounced persistence
   useEffect(() => {
@@ -106,7 +105,6 @@ export default function App() {
         peaks: [], peakCount: 1, fitResult: null, metrics: [],
       }));
       setDetectNotice(undefined);
-      setBrushRange(null);
     } catch (e) {
       alert('Failed to parse CSV: ' + (e as Error).message);
     }
@@ -161,30 +159,19 @@ export default function App() {
     setState(s => ({ ...s, profile, fitResult: null, metrics: [] }));
   }, []);
 
-  // Region-filtered points for detect/fit
-  const isRegionActive = brushRange !== null && currentPoints !== null &&
-    (brushRange.startIdx > 0 || brushRange.endIdx < currentPoints.length - 1);
-
   const handleDetect = useCallback(() => {
     if (!currentPoints) return;
-    let pts = currentPoints;
-    if (isRegionActive && brushRange) {
-      pts = currentPoints.slice(brushRange.startIdx, brushRange.endIdx + 1);
-    }
-    const detected = detectPeaks(pts);
+    const detected = detectPeaks(currentPoints);
     const peaks: PeakParams[] = detected.map(d => ({
       x0: d.x, height: d.y, fwhm: d.estimatedFWHM, eta: 0.5,
     }));
     setState(s => ({ ...s, peaks, peakCount: Math.max(1, peaks.length), fitResult: null, metrics: [] }));
-    const regionSuffix = isRegionActive && brushRange && currentPoints
-      ? ` (region ${currentPoints[brushRange.startIdx].x.toFixed(0)}–${currentPoints[brushRange.endIdx].x.toFixed(0)})`
-      : '';
     setDetectNotice(
       peaks.length === 0
-        ? 'No peaks detected. Try changing baseline settings or region.'
-        : `${peaks.length} peak${peaks.length === 1 ? '' : 's'} detected${regionSuffix}.`
+        ? 'No peaks detected. Try changing baseline settings or sample.'
+        : `${peaks.length} peak${peaks.length === 1 ? '' : 's'} detected.`
     );
-  }, [currentPoints, brushRange, isRegionActive]);
+  }, [currentPoints]);
 
   const setPeakCount = useCallback((value: number) => {
     setState(s => {
@@ -196,19 +183,15 @@ export default function App() {
 
   const handleFit = useCallback(() => {
     if (!currentPoints || state.peaks.length === 0) return;
-    let pts = currentPoints;
-    if (isRegionActive && brushRange) {
-      pts = currentPoints.slice(brushRange.startIdx, brushRange.endIdx + 1);
-    }
     try {
       const selectedPeaks = pickTopNDetectedPeaks(state.peaks, state.peakCount);
-      const result = fitPeaks(pts, selectedPeaks, { profile: state.profile });
+      const result = fitPeaks(currentPoints, selectedPeaks, { profile: state.profile });
       const metrics = extractMetrics(result);
       setState(s => ({ ...s, fitResult: result, metrics, peaks: result.peaks, peakCount: result.peaks.length }));
     } catch (e) {
       alert('Fitting failed: ' + (e as Error).message);
     }
-  }, [currentPoints, brushRange, isRegionActive, state.peaks, state.peakCount, state.profile]);
+  }, [currentPoints, state.peaks, state.peakCount, state.profile]);
 
   const handleExportResultsCSV = useCallback(() => {
     if (!state.metrics.length) return;
@@ -268,29 +251,19 @@ export default function App() {
     setState(s => ({ ...s, peaks: [...s.peaks, peak], peakCount: s.peaks.length + 1, fitResult: null, metrics: [] }));
   }, [currentPoints]);
 
-  // Build chart data — recompute fitted from peak params so curve shows across full range
-  const chartData = currentPoints?.map((p) => {
+  // Build chart data
+  const chartData = currentPoints?.map((p, i) => {
     const d: Record<string, number> = { x: p.x, raw: p.y };
     if (state.fitResult) {
-      let fittedVal = 0;
+      d.fitted = state.fitResult.fittedY[i];
+      d.residual = state.fitResult.residuals[i];
+      // Individual peak curves
       state.fitResult.peaks.forEach((pk, j) => {
-        const peakVal = evaluateProfile(p.x, pk.height, pk.x0, pk.fwhm, state.fitResult!.profile, pk.eta);
-        d[`peak${j}`] = peakVal;
-        fittedVal += peakVal;
+        d[`peak${j}`] = evaluateProfile(p.x, pk.height, pk.x0, pk.fwhm, state.fitResult!.profile, pk.eta);
       });
-      d.fitted = fittedVal;
-      d.residual = p.y - fittedVal;
     }
     return d;
   });
-
-  const handleBrushChange = useCallback((startIdx: number, endIdx: number) => {
-    setBrushRange({ startIdx, endIdx });
-  }, []);
-
-  const regionLabel = isRegionActive && currentPoints && brushRange
-    ? `${currentPoints[brushRange.startIdx].x.toFixed(0)}–${currentPoints[brushRange.endIdx].x.toFixed(0)}`
-    : undefined;
 
   return (
     <div className="app-layout" data-theme={theme}>
@@ -318,7 +291,6 @@ export default function App() {
         onDetect={handleDetect}
         onFit={handleFit}
         detectNotice={detectNotice}
-        regionLabel={regionLabel}
         onTheme={() => setTheme(t => {
           const next = t === 'light' ? 'dark' : 'light';
           localStorage.setItem('PeakForge-theme', next);
@@ -341,7 +313,6 @@ export default function App() {
                   xLabel={state.xLabel}
                   yLabel={state.yLabel}
                   onAddPeak={handleAddPeak}
-                  onBrushChange={handleBrushChange}
                 />
               </div>
             </div>

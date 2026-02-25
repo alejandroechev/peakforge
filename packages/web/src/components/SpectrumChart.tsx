@@ -13,11 +13,10 @@ interface SpectrumChartProps {
   xLabel: string;
   yLabel: string;
   onAddPeak: (x: number, y: number) => void;
-  onBrushChange?: (startIdx: number, endIdx: number) => void;
 }
 
 export function SpectrumChart({
-  data, peaks, fitResult, xLabel, yLabel, onAddPeak, onBrushChange,
+  data, peaks, fitResult, xLabel, yLabel, onAddPeak,
 }: SpectrumChartProps) {
   const handleClick = useCallback((e: any) => {
     if (e?.activePayload?.[0]) {
@@ -49,11 +48,6 @@ export function SpectrumChart({
               height={24}
               stroke="var(--accent)"
               tickFormatter={(value: number) => Number(value).toFixed(0)}
-              onChange={(range: {startIndex?: number; endIndex?: number}) => {
-                if (onBrushChange && range.startIndex !== undefined && range.endIndex !== undefined) {
-                  onBrushChange(range.startIndex, range.endIndex);
-                }
-              }}
             />
 
             <Line type="monotone" dataKey="raw" stroke="var(--fg2)" dot={false}
