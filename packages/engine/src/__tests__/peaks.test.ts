@@ -54,6 +54,26 @@ describe('peak detection', () => {
     expect(peaks.length).toBeLessThan(10);
     expect(peaks.some(p => Math.abs(p.x - 50) < 2)).toBe(true);
   });
+
+  it('detects a left-edge peak', () => {
+    const pts = syntheticSpectrum([{ x0: 0, h: 10, fwhm: 6 }], [0, 100], 400);
+    const peaks = detectPeaks(pts);
+    expect(peaks.some(p => p.index === 0)).toBe(true);
+  });
+
+  it('detects a right-edge peak', () => {
+    const pts = syntheticSpectrum([{ x0: 100, h: 10, fwhm: 6 }], [0, 100], 400);
+    const peaks = detectPeaks(pts);
+    expect(peaks.some(p => p.index === pts.length - 1)).toBe(true);
+  });
+
+  it('estimates positive FWHM for edge peaks', () => {
+    const pts = syntheticSpectrum([{ x0: 0, h: 10, fwhm: 6 }], [0, 100], 400);
+    const peaks = detectPeaks(pts);
+    const edgePeak = peaks.find(p => p.index === 0);
+    expect(edgePeak).toBeDefined();
+    expect(edgePeak!.estimatedFWHM).toBeGreaterThan(0);
+  });
 });
 
 describe('estimateNoise', () => {

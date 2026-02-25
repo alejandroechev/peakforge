@@ -68,4 +68,18 @@ describe('fitPeaks (LM)', () => {
     expect(result.residuals).toHaveLength(pts.length);
     expect(result.fittedY).toHaveLength(pts.length);
   });
+
+  it('respects number of initial peaks used for fitting', () => {
+    const pts = syntheticSpectrum([
+      { x0: 25, h: 8, fwhm: 4 },
+      { x0: 55, h: 10, fwhm: 5 },
+      { x0: 80, h: 7, fwhm: 4 },
+    ]);
+    const initial: PeakParams[] = [
+      { x0: 24, height: 7, fwhm: 5, eta: 0.5 },
+      { x0: 56, height: 9, fwhm: 6, eta: 0.5 },
+    ];
+    const result = fitPeaks(pts, initial, { profile: 'gaussian' });
+    expect(result.peaks).toHaveLength(2);
+  });
 });

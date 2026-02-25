@@ -18,6 +18,7 @@ export interface AppState {
   baselineOpts: BaselineOptions;
   profile: ProfileType;
   peaks: PeakParams[];
+  peakCount: number;
   fitResult: FitResult | null;
   metrics: PeakMetric[];
   xLabel: string;
@@ -43,6 +44,15 @@ export function getPeakColor(i: number): string {
   return PEAK_COLORS[i % PEAK_COLORS.length];
 }
 
+function pickTopNDetectedPeaks(peaks: PeakParams[], count: number): PeakParams[] {
+  const n = Math.max(1, Math.min(count, peaks.length));
+  if (n >= peaks.length) return [...peaks];
+  return [...peaks]
+    .sort((a, b) => b.height - a.height)
+    .slice(0, n)
+    .sort((a, b) => a.x0 - b.x0);
+}
+
 export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('PeakForge-theme') as 'light' | 'dark') || 'light';
@@ -55,6 +65,7 @@ export default function App() {
     baselineOpts: savedState?.baselineOpts ?? { method: 'linear' },
     profile: savedState?.profile ?? 'gaussian',
     peaks: savedState?.peaks ?? [],
+    peakCount: savedState?.peakCount ?? 1,
     fitResult: savedState?.fitResult ?? null,
     metrics: savedState?.metrics ?? [],
     xLabel: savedState?.xLabel ?? 'x',
@@ -69,6 +80,7 @@ export default function App() {
           raw: state.raw, corrected: state.corrected,
           baseline: state.baseline, baselineOpts: state.baselineOpts,
           profile: state.profile, peaks: state.peaks,
+          peakCount: state.peakCount,
           fitResult: state.fitResult, metrics: state.metrics,
           xLabel: state.xLabel, yLabel: state.yLabel,
         }));
@@ -89,7 +101,7 @@ export default function App() {
         corrected,
         xLabel: spectrum.xLabel,
         yLabel: spectrum.yLabel,
-        peaks: [], fitResult: null, metrics: [],
+        peaks: [], peakCount: 1, fitResult: null, metrics: [],
       }));
     } catch (e) {
       alert('Failed to parse CSV: ' + (e as Error).message);
@@ -102,15 +114,42 @@ export default function App() {
       if (newBaseline && s.raw && !s.corrected) {
         return { ...s, baseline: newBaseline, corrected: correctBaseline(s.raw, s.baselineOpts) };
       }
-      return { ...s, baseline: newBaseline, peaks: [], fitResult: null, metrics: [] };
+      return { ...s, baseline: newBaseline, peaks: [], peakCount: 1, fitResult: null, metrics: [] };
     });
   }, []);
 
-  const setBaselineMethod = useCallback((method: 'linear' | 'polynomial') => {
+  const setBaselineMethod = useCallback((method: BaselineOptions['method']) => {
     setState(s => {
       const opts: BaselineOptions = { ...s.baselineOpts, method };
       const corrected = s.raw ? correctBaseline(s.raw, opts) : null;
-      return { ...s, baselineOpts: opts, corrected, peaks: [], fitResult: null, metrics: [] };
+      return { ...s, baselineOpts: opts, corrected, peaks: [], peakCount: 1, fitResult: null, metrics: [] };
+    });
+  }, []);
+
+  const setAslsLambda = useCallback((value: number) => {
+    const aslsLambda = Math.max(1, Number.isFinite(value) ? value : 1);
+    setState(s => {
+      const opts: BaselineOptions = { ...s.baselineOpts, method: 'asls', aslsLambda };
+      const corrected = s.raw ? correctBaseline(s.raw, opts) : null;
+      return { ...s, baselineOpts: opts, corrected, peaks: [], peakCount: 1, fitResult: null, metrics: [] };
+    });
+  }, []);
+
+  const setAslsP = useCallback((value: number) => {
+    const aslsP = Math.min(0.499, Math.max(0.000001, Number.isFinite(value) ? value : 0.001));
+    setState(s => {
+      const opts: BaselineOptions = { ...s.baselineOpts, method: 'asls', aslsP };
+      const corrected = s.raw ? correctBaseline(s.raw, opts) : null;
+      return { ...s, baselineOpts: opts, corrected, peaks: [], peakCount: 1, fitResult: null, metrics: [] };
+    });
+  }, []);
+
+  const setAslsIterations = useCallback((value: number) => {
+    const aslsIterations = Math.max(1, Math.floor(Number.isFinite(value) ? value : 10));
+    setState(s => {
+      const opts: BaselineOptions = { ...s.baselineOpts, method: 'asls', aslsIterations };
+      const corrected = s.raw ? correctBaseline(s.raw, opts) : null;
+      return { ...s, baselineOpts: opts, corrected, peaks: [], peakCount: 1, fitResult: null, metrics: [] };
     });
   }, []);
 
@@ -124,19 +163,28 @@ export default function App() {
     const peaks: PeakParams[] = detected.map(d => ({
       x0: d.x, height: d.y, fwhm: d.estimatedFWHM, eta: 0.5,
     }));
-    setState(s => ({ ...s, peaks, fitResult: null, metrics: [] }));
+    setState(s => ({ ...s, peaks, peakCount: Math.max(1, peaks.length), fitResult: null, metrics: [] }));
   }, [currentPoints]);
+
+  const setPeakCount = useCallback((value: number) => {
+    setState(s => {
+      const maxCount = Math.max(1, s.peaks.length);
+      const next = Math.max(1, Math.min(maxCount, Math.floor(Number.isFinite(value) ? value : 1)));
+      return { ...s, peakCount: next, fitResult: null, metrics: [] };
+    });
+  }, []);
 
   const handleFit = useCallback(() => {
     if (!currentPoints || state.peaks.length === 0) return;
     try {
-      const result = fitPeaks(currentPoints, state.peaks, { profile: state.profile });
+      const selectedPeaks = pickTopNDetectedPeaks(state.peaks, state.peakCount);
+      const result = fitPeaks(currentPoints, selectedPeaks, { profile: state.profile });
       const metrics = extractMetrics(result);
-      setState(s => ({ ...s, fitResult: result, metrics, peaks: result.peaks }));
+      setState(s => ({ ...s, fitResult: result, metrics, peaks: result.peaks, peakCount: result.peaks.length }));
     } catch (e) {
       alert('Fitting failed: ' + (e as Error).message);
     }
-  }, [currentPoints, state.peaks, state.profile]);
+  }, [currentPoints, state.peaks, state.peakCount, state.profile]);
 
   const handleExportResultsCSV = useCallback(() => {
     if (!state.metrics.length) return;
@@ -193,7 +241,7 @@ export default function App() {
     const xRange = currentPoints[currentPoints.length - 1].x - currentPoints[0].x;
     const fwhm = xRange * 0.02; // initial guess: 2% of range
     const peak: PeakParams = { x0: x, height: y, fwhm, eta: 0.5 };
-    setState(s => ({ ...s, peaks: [...s.peaks, peak], fitResult: null, metrics: [] }));
+    setState(s => ({ ...s, peaks: [...s.peaks, peak], peakCount: s.peaks.length + 1, fitResult: null, metrics: [] }));
   }, [currentPoints]);
 
   // Build chart data
@@ -216,14 +264,23 @@ export default function App() {
         hasData={!!state.raw}
         baseline={state.baseline}
         baselineMethod={state.baselineOpts.method}
+        aslsLambda={state.baselineOpts.aslsLambda ?? 100000}
+        aslsP={state.baselineOpts.aslsP ?? 0.001}
+        aslsIterations={state.baselineOpts.aslsIterations ?? 10}
         profile={state.profile}
         hasPeaks={state.peaks.length > 0}
+        peakCount={Math.min(state.peakCount, Math.max(1, state.peaks.length))}
+        maxPeakCount={Math.max(1, state.peaks.length)}
         hasFit={!!state.fitResult}
         theme={theme}
         onUpload={handleUpload}
         onToggleBaseline={toggleBaseline}
         onBaselineMethod={setBaselineMethod}
+        onAslsLambda={setAslsLambda}
+        onAslsP={setAslsP}
+        onAslsIterations={setAslsIterations}
         onProfile={setProfile}
+        onPeakCount={setPeakCount}
         onDetect={handleDetect}
         onFit={handleFit}
         onTheme={() => setTheme(t => {

@@ -53,14 +53,34 @@ select {
   font-size: 13px;
 }
 
+input[type='number'] {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  background: var(--bg2);
+  color: var(--fg);
+  font-size: 13px;
+}
+
 .toolbar {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
   padding: 10px 16px;
   background: var(--bg2);
   border-bottom: 1px solid var(--border);
+}
+
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
+}
+
+.toolbar-controls-row {
+  padding-left: 0;
 }
 
 .toolbar .logo {
@@ -75,6 +95,18 @@ select {
   height: 24px;
   background: var(--border);
   margin: 0 4px;
+}
+
+.toolbar-inline-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--fg2);
+}
+
+.toolbar-inline-label input[type='number'] {
+  width: 78px;
 }
 
 .app-layout {
@@ -104,17 +136,28 @@ select {
   background: var(--bg);
 }
 
+.chart-x-label {
+  text-align: center;
+  color: var(--fg);
+  font-size: 12px;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
 .residual-container {
   height: 120px;
   border-top: 1px solid var(--border);
-  margin-top: 8px;
+  margin-top: 4px;
   background: var(--bg);
 }
 
 /* Recharts grid lines in dark mode */
 [data-theme='dark'] .recharts-cartesian-grid line { stroke: #333; }
 [data-theme='dark'] .recharts-brush { fill: var(--bg2); }
-[data-theme='dark'] .recharts-brush-traveller rect { fill: var(--fg2); }
+[data-theme='dark'] .recharts-brush-traveller rect {
+  fill: var(--fg2);
+  stroke: var(--border);
+}
 
 .results-panel {
   width: 340px;
@@ -136,11 +179,15 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
+  color: var(--fg);
 }
 table th, table td {
   padding: 6px 8px;
   text-align: right;
   border-bottom: 1px solid var(--border);
+}
+table td {
+  color: var(--fg);
 }
 table th {
   text-align: right;
@@ -194,8 +241,14 @@ table tr:hover { background: rgba(37, 99, 235, 0.05); }
 /* Recharts dark theme text */
 .recharts-cartesian-axis-tick-value { fill: var(--fg); }
 .recharts-label { fill: var(--fg); }
-.recharts-legend-item-text { color: var(--fg) !important; }
-.recharts-brush-texts text { fill: var(--fg); }
+.recharts-text { fill: var(--fg); }
+.recharts-legend-item-text { color: var(--fg) !important; fill: var(--fg) !important; }
+.recharts-brush-texts text,
+.recharts-brush-texts tspan { fill: var(--fg) !important; }
+.recharts-brush-texts rect {
+  fill: var(--bg2) !important;
+  stroke: var(--border) !important;
+}
 
 /* R² badges dark mode */
 [data-theme='dark'] .r-squared .good { background: #166534; color: #dcfce7; }

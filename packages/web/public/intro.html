@@ -242,6 +242,14 @@
   Handles curved backgrounds from fluorescence or broad scattering. Higher
   degrees give more flexibility but risk overfitting.
 </p>
+<h3>AsLS Baseline (Asymmetric Least Squares)</h3>
+<p>
+  A robust baseline method for noisy spectra with curved backgrounds. It
+  iteratively estimates a smooth baseline while penalizing points above the
+  baseline more than points below it. In PeakForge, you can tune
+  <strong>λ</strong> (smoothness), <strong>p</strong> (asymmetry), and
+  <strong>iterations</strong> from the toolbar when AsLS is selected.
+</p>
 
 <!-- 6. Peak Detection -->
 <h2>6. Peak Detection</h2>
@@ -287,13 +295,15 @@
 <h2>8. How to Use PeakForge</h2>
 <ol class="steps">
   <li>
-    <strong>Load a spectrum</strong> — click <em>📂 Upload CSV</em> or drag-and-drop
-    a CSV file. Format: column 1 = x (wavenumber, wavelength, or energy),
-    column 2 = intensity. Tab, comma, or semicolon delimiters are auto-detected.
+    <strong>Load a spectrum</strong> — click <em>📂 Upload CSV</em>, use
+    <em>📂 Samples</em>, or drag-and-drop a CSV file. Format: column 1 = x
+    (wavenumber, wavelength, or energy), column 2 = intensity. Tab, comma, or
+    semicolon delimiters are auto-detected.
   </li>
   <li>
     <strong>Baseline correction</strong> — toggle <em>📐 Baseline</em> to subtract
-    the background. Choose Linear or Polynomial from the dropdown.
+    the background. Choose Linear, Polynomial, or AsLS from the dropdown. If
+    using AsLS, tune <em>λ</em>, <em>p</em>, and <em>iters</em> in the toolbar.
   </li>
   <li>
     <strong>Detect peaks</strong> — click <em>🔍 Detect Peaks</em> for automatic
@@ -313,8 +323,13 @@
     height, FWHM, and area, plus the overall R².
   </li>
   <li>
-    <strong>Export</strong> — download fitted parameters and curve data as CSV
-    (<em>💾 CSV</em>) or save the chart as a PNG image (<em>🖼️ PNG</em>).
+    <strong>Export</strong> — export in place: from the results panel use
+    <em>📋 Results CSV</em> and <em>📊 Data CSV</em>; from the chart area use
+    <em>🖼️ PNG</em> or <em>🧾 SVG</em>.
+  </li>
+  <li>
+    <strong>Continue where you left off</strong> — PeakForge automatically saves
+    your working state in local storage, including theme and loaded data.
   </li>
 </ol>
 

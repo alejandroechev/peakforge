@@ -29,10 +29,10 @@ export function SpectrumChart({
     <>
       <div className="chart-container">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} onClick={handleClick} margin={{ top: 8, right: 16, bottom: 4, left: 8 }}>
+          <ComposedChart data={data} onClick={handleClick} margin={{ top: 8, right: 16, bottom: 24, left: 8 }}>
             <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
             <XAxis dataKey="x" type="number" domain={['dataMin', 'dataMax']}
-              tickFormatter={v => v.toFixed(0)} label={{ value: xLabel, position: 'insideBottom', offset: -2 }}
+              tickFormatter={v => v.toFixed(0)}
             />
             <YAxis label={{ value: yLabel, angle: -90, position: 'insideLeft' }} />
             <Tooltip
@@ -43,7 +43,12 @@ export function SpectrumChart({
               itemStyle={{ color: 'var(--fg)' }}
             />
             <Legend />
-            <Brush dataKey="x" height={20} stroke="var(--accent)" />
+            <Brush
+              dataKey="x"
+              height={24}
+              stroke="var(--accent)"
+              tickFormatter={(value: number) => Number(value).toFixed(0)}
+            />
 
             <Line type="monotone" dataKey="raw" stroke="var(--fg2)" dot={false}
               strokeWidth={1.5} name="Raw" />
@@ -61,6 +66,7 @@ export function SpectrumChart({
           </ComposedChart>
         </ResponsiveContainer>
       </div>
+      <div className="chart-x-label">{xLabel}</div>
 
       {fitResult && (
         <div className="residual-container">

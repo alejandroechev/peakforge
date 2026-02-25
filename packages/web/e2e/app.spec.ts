@@ -158,6 +158,19 @@ test.describe('Workflow Steps', () => {
     await expect(btn).toContainText('OFF');
   });
 
+  test('AsLS baseline method exposes parameter controls', async ({ page }) => {
+    const baselineBtn = page.getByRole('button', { name: /Baseline/ });
+    await baselineBtn.click();
+    await expect(baselineBtn).toContainText('ON');
+
+    const baselineSelect = page.locator('select').nth(1);
+    await baselineSelect.selectOption('asls');
+
+    await expect(page.locator('.toolbar-inline-label', { hasText: 'λ' }).locator('input')).toBeVisible();
+    await expect(page.locator('.toolbar-inline-label', { hasText: 'p' }).locator('input')).toBeVisible();
+    await expect(page.locator('.toolbar-inline-label', { hasText: 'iters' }).locator('input')).toBeVisible();
+  });
+
   test('peak detection sensitivity — detect finds peaks', async ({ page }) => {
     await detectPeaks(page);
     const fitBtn = page.getByRole('button', { name: /Fit/ });
@@ -193,6 +206,20 @@ test.describe('Workflow Steps', () => {
     // Re-detecting resets peaks
     await detectPeaks(page);
     await expect(fitBtn).toBeEnabled();
+  });
+
+  test('manual peak count controls top-N fit result count', async ({ page }) => {
+    await loadSample(page, SAMPLES[4]); // complex sample with many peaks
+    await waitForChart(page);
+    await detectPeaks(page);
+
+    const peakCountInput = page.locator('.toolbar-inline-label', { hasText: 'Peaks' }).locator('input');
+    await expect(peakCountInput).toBeVisible();
+    await peakCountInput.fill('2');
+    await fitPeaks(page);
+
+    const rows = page.locator('.results-panel tbody tr');
+    expect(await rows.count()).toBe(2);
   });
 });
 
@@ -345,6 +372,39 @@ test.describe('UI', () => {
     await expect(page.locator('.results-panel h3')).toBeVisible();
     const th = page.locator('.results-panel table th').first();
     await expect(th).toBeVisible();
+
+    const tdColor = await page.locator('.results-panel table tbody td').first().evaluate(el => getComputedStyle(el).color);
+    expect(tdColor).not.toBe('rgb(0, 0, 0)');
+  });
+
+  test('brush labels are readable in dark theme', async ({ page }) => {
+    const themeBtn = page.getByRole('button', { name: /🌙|☀️/ });
+    await themeBtn.click();
+    await expect(page.locator('.app-layout')).toHaveAttribute('data-theme', 'dark');
+
+    await loadSample(page, SAMPLES[0]);
+    await waitForChart(page);
+
+    const travellers = page.locator('.recharts-brush-traveller');
+    await expect(travellers).toHaveCount(2);
+
+    const handleFill = await travellers.first().locator('rect').evaluate(el => getComputedStyle(el).fill);
+    expect(handleFill).not.toBe('rgb(255, 255, 255)');
+
+    await expect(page.locator('.chart-x-label')).toBeVisible();
+  });
+
+  test('toolbar keeps baseline-to-fit controls in second row', async ({ page }) => {
+    await loadSample(page, SAMPLES[0]);
+    await waitForChart(page);
+
+    const rows = page.locator('.toolbar .toolbar-row');
+    await expect(rows).toHaveCount(2);
+
+    await expect(rows.nth(0).getByRole('button', { name: /Upload CSV/ })).toBeVisible();
+    await expect(rows.nth(1).getByRole('button', { name: /Baseline/ })).toBeVisible();
+    await expect(rows.nth(1).getByRole('button', { name: /Detect Peaks/ })).toBeVisible();
+    await expect(rows.nth(1).getByRole('button', { name: /Fit/ })).toBeVisible();
   });
 
   test('in-place export buttons in chart area and results panel', async ({ page }) => {
@@ -391,6 +451,13 @@ test.describe('UI', () => {
     await expect(page.locator('.residual-container')).toBeVisible();
     // Check that residual plot has rendered recharts content
     await expect(page.locator('.residual-container .recharts-line-curve')).toBeVisible();
+  });
+
+  test('x-axis label renders in dedicated row below chart', async ({ page }) => {
+    await loadSample(page, SAMPLES[0]);
+    await waitForChart(page);
+    await expect(page.locator('.chart-x-label')).toBeVisible();
+    await expect(page.locator('.chart-x-label')).toHaveText('Wavenumber (cm-1)');
   });
 });
 
