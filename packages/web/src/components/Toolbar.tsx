@@ -27,6 +27,7 @@ interface ToolbarProps {
   onDetect: () => void;
   onFit: () => void;
   onTheme: () => void;
+  detectNotice?: string;
 }
 
 export function Toolbar(props: ToolbarProps) {
@@ -133,6 +134,12 @@ export function Toolbar(props: ToolbarProps) {
         <button disabled={!props.hasData} onClick={props.onDetect}>
           🔍 Detect Peaks
         </button>
+
+        {props.detectNotice && (
+          <span className="detect-notice" data-testid="detect-notice" role="status" aria-live="polite">
+            {props.detectNotice}
+          </span>
+        )}
 
         <select
           value={props.profile}

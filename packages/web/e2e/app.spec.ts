@@ -51,6 +51,7 @@ test.describe('Core Workflow', () => {
     await loadSample(page, SAMPLES[0]);
     await waitForChart(page);
     await detectPeaks(page);
+    await expect(page.getByTestId('detect-notice')).toContainText(/peak/i);
     // After detection, Fit button should be enabled (hasPeaks = true)
     const fitBtn = page.getByRole('button', { name: /Fit/ });
     await expect(fitBtn).toBeEnabled();

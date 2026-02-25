@@ -71,6 +71,7 @@ export default function App() {
     xLabel: savedState?.xLabel ?? 'x',
     yLabel: savedState?.yLabel ?? 'y',
   }));
+  const [detectNotice, setDetectNotice] = useState<string | undefined>(undefined);
 
   // Debounced persistence
   useEffect(() => {
@@ -103,6 +104,7 @@ export default function App() {
         yLabel: spectrum.yLabel,
         peaks: [], peakCount: 1, fitResult: null, metrics: [],
       }));
+      setDetectNotice(undefined);
     } catch (e) {
       alert('Failed to parse CSV: ' + (e as Error).message);
     }
@@ -164,6 +166,11 @@ export default function App() {
       x0: d.x, height: d.y, fwhm: d.estimatedFWHM, eta: 0.5,
     }));
     setState(s => ({ ...s, peaks, peakCount: Math.max(1, peaks.length), fitResult: null, metrics: [] }));
+    setDetectNotice(
+      peaks.length === 0
+        ? 'No peaks detected. Try changing baseline settings or sample.'
+        : `${peaks.length} peak${peaks.length === 1 ? '' : 's'} detected.`
+    );
   }, [currentPoints]);
 
   const setPeakCount = useCallback((value: number) => {
@@ -283,6 +290,7 @@ export default function App() {
         onPeakCount={setPeakCount}
         onDetect={handleDetect}
         onFit={handleFit}
+        detectNotice={detectNotice}
         onTheme={() => setTheme(t => {
           const next = t === 'light' ? 'dark' : 'light';
           localStorage.setItem('PeakForge-theme', next);
