@@ -1,7 +1,6 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import type { ProfileType, BaselineMethod } from '@peakforge/engine';
 import { SAMPLES } from '../samples';
-import { FeedbackModal } from './FeedbackModal';
 
 interface ToolbarProps {
   hasData: boolean;
@@ -32,7 +31,6 @@ interface ToolbarProps {
 
 export function Toolbar(props: ToolbarProps) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [showFeedback, setShowFeedback] = useState(false);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -64,7 +62,7 @@ export function Toolbar(props: ToolbarProps) {
         <div style={{ flex: 1 }} />
 
         <button onClick={() => window.open('/intro.html', '_blank')}>📖 Guide</button>
-        <button onClick={() => setShowFeedback(true)} title="Feedback">💬 Feedback</button>
+        <a href="https://github.com/alejandroechev/peakforge/issues" target="_blank" rel="noopener noreferrer" className="github-link">💬 Feedback</a>
         <a href="https://github.com/alejandroechev/peakforge" target="_blank" rel="noopener" className="github-link">GitHub</a>
 
         <button onClick={props.onTheme}>
@@ -168,7 +166,6 @@ export function Toolbar(props: ToolbarProps) {
         </button>
       </div>
 
-      <FeedbackModal open={showFeedback} onClose={() => setShowFeedback(false)} product="PeakForge" />
     </div>
   );
 }
